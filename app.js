@@ -3,32 +3,49 @@ const fs = require('fs');
 class ProductManager {
   constructor(filePath) {
     this.products = [];
-    this.nextId = 1;
     this.path = filePath;
+    this.id = 1;
+    if (!fs.existsSync(this.path)) return fs.writeFileSync(this.path, "[]");
+    try {
+      const data = fs.readFileSync(this.path, "utf-8");
+      this.products = JSON.parse(data);
+      if (this.products.length > 0) {
+        const lastProduct = this.products[this.products.length - 1];
+        this.id = lastProduct.id + 1;
+      }
+    } catch (err) {
+      if (err.code === "ENOENT") {
+        fs.writeFileSync(this.path, "[]");
+      } else {
+        throw err;
+      }
+    }
   }
+  
 
   addProduct(product) {
-    const products = JSON.parse(fs.readFileSync(this.path));
-  
+    const data = JSON.parse(fs.readFileSync(this.path));
     if (
       !product.code ||
       !product.title ||
       !product.price ||
+      !product.thumbnail ||
       !product.description
     ) {
       throw new Error("Todos los campos son obligatorios");
     }
-    const existingProduct = products.find((p) => p.code === product.code);
+    const existingProduct = data.find((p) => p.code === product.code);
     if (existingProduct) {
       throw new Error("Ya existe un producto con ese código");
     }
     const newProduct = {
-      id: this.nextId++,
+      id: this.id++,
       ...product,
     };
-    products.push(newProduct);
-    fs.writeFileSync(this.path, JSON.stringify(products));
+    data.push(newProduct);
+    fs.writeFileSync(this.path, JSON.stringify(data));
   }
+  
   
 
   getProducts() {
@@ -42,21 +59,37 @@ class ProductManager {
     const index = products.findIndex((p) => p.id === id);
   
     if (index !== -1) {
-      products[index] = {
+      const allowedUpdates = ['title', 'description', 'price','thumbnail', 'stock'];
+      const keys = Object.keys(newProductData);
+      const isValidUpdate = keys.every((key) => allowedUpdates.includes(key));
+      if (!isValidUpdate) {
+        throw new Error(`Sólo se pueden actualizar las siguientes propiedades: title, description, price, thumbnail y stock`);
+      }
+  
+      const updatedProduct = {
         ...products[index],
-        ...newProductData
+        ...newProductData,
+        id: products[index].id,
       };
+      products[index] = updatedProduct;
   
       fs.writeFileSync(this.path, JSON.stringify(products));
+    } else {
+      throw new Error(`Producto con ID ${id} no encontrado`);
     }
   }
+  
 
   deleteProduct(id) {
     const products = JSON.parse(fs.readFileSync(this.path));
-  
-    const newProducts = products.filter((p) => p.id !== id);
-  
-    fs.writeFileSync(this.path, JSON.stringify(newProducts));
+    const index = products.findIndex((p) => p.id === id);
+
+    if(index !== -1){
+      const newProducts = products.filter((p) => p.id !== id); 
+      fs.writeFileSync(this.path, JSON.stringify(newProducts));
+    }else {
+      throw new Error(`Producto con ID ${id} no encontrado`);
+    }
   }
 
   getProductById(id) {
@@ -76,9 +109,12 @@ productManager.addProduct({
   "description": "Remera de algodón",
   "price": 2999.99,
   "thumbnail": "https://i.ibb.co/6bddLrh/20201206-191301.jpg",
-  "code": "PA001",
+  "code": "P003",
   "stock": 10
 });
-// productManager.deleteProduct(2)
+// productManager.deleteProduct(5)
+// productManager.updateProduct(1, {tutor: "hola"} )
+
+
 const products = productManager.getProducts();
 console.log(products);
