@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require("fs");
 
 class ProductManager {
   constructor(filePath) {
@@ -21,7 +21,6 @@ class ProductManager {
       }
     }
   }
-  
 
   addProduct(product) {
     const data = JSON.parse(fs.readFileSync(this.path));
@@ -34,7 +33,7 @@ class ProductManager {
     ) {
       throw new Error("Todos los campos son obligatorios");
     }
-    const existingProduct = data.find((p) => p.code === product.code);
+    const existingProduct = this.products.find((p) => p.code === product.code);
     if (existingProduct) {
       throw new Error("Ya existe un producto con ese código");
     }
@@ -42,11 +41,9 @@ class ProductManager {
       id: this.id++,
       ...product,
     };
-    data.push(newProduct);
-    fs.writeFileSync(this.path, JSON.stringify(data));
+    this.products.push(newProduct);
+    fs.writeFileSync(this.path, JSON.stringify(this.products));
   }
-  
-  
 
   getProducts() {
     const products = JSON.parse(fs.readFileSync(this.path));
@@ -54,47 +51,54 @@ class ProductManager {
   }
 
   updateProduct(id, newProductData) {
-    const products = JSON.parse(fs.readFileSync(this.path));
-  
-    const index = products.findIndex((p) => p.id === id);
-  
+    // const products = JSON.parse(fs.readFileSync(this.path));
+
+    const index = this.products.findIndex((p) => p.id === id);
+
     if (index !== -1) {
-      const allowedUpdates = ['title', 'description', 'price','thumbnail', 'stock'];
+      const allowedUpdates = [
+        "title",
+        "description",
+        "price",
+        "thumbnail",
+        "stock",
+      ];
       const keys = Object.keys(newProductData);
       const isValidUpdate = keys.every((key) => allowedUpdates.includes(key));
       if (!isValidUpdate) {
-        throw new Error(`Sólo se pueden actualizar las siguientes propiedades: title, description, price, thumbnail y stock`);
+        throw new Error(
+          `Sólo se pueden actualizar las siguientes propiedades: title, description, price, thumbnail y stock`
+        );
       }
-  
+
       const updatedProduct = {
         ...products[index],
         ...newProductData,
         id: products[index].id,
       };
       products[index] = updatedProduct;
-  
+
       fs.writeFileSync(this.path, JSON.stringify(products));
     } else {
       throw new Error(`Producto con ID ${id} no encontrado`);
     }
   }
-  
 
   deleteProduct(id) {
-    const products = JSON.parse(fs.readFileSync(this.path));
-    const index = products.findIndex((p) => p.id === id);
+    // const products = JSON.parse(fs.readFileSync(this.path));
+    const index = this.products.findIndex((p) => p.id === id);
 
-    if(index !== -1){
-      const newProducts = products.filter((p) => p.id !== id); 
+    if (index !== -1) {
+      const newProducts = this.products.filter((p) => p.id !== id);
       fs.writeFileSync(this.path, JSON.stringify(newProducts));
-    }else {
+    } else {
       throw new Error(`Producto con ID ${id} no encontrado`);
     }
   }
 
   getProductById(id) {
-    const products = JSON.parse(fs.readFileSync(this.path));
-    const product = products.find((p) => p.id === parseInt(id));
+    // const products = JSON.parse(fs.readFileSync(this.path));
+    const product = this.products.find((p) => p.id === parseInt(id));
     if (!product) {
       throw new Error("Producto no encontrado");
     }
@@ -102,19 +106,18 @@ class ProductManager {
   }
 }
 
-const productManager = new ProductManager('productos.json');
+const productManager = new ProductManager("productos.json");
 
-productManager.addProduct({
-  "title": "Remera",
-  "description": "Remera de algodón",
-  "price": 2999.99,
-  "thumbnail": "https://i.ibb.co/6bddLrh/20201206-191301.jpg",
-  "code": "P003",
-  "stock": 10
-});
-// productManager.deleteProduct(5)
+// productManager.addProduct({
+//   title: "Remera",
+//   description: "Remera de algodón",
+//   price: 2999.99,
+//   thumbnail: "https://i.ibb.co/6bddLrh/20201206-191301.jpg",
+//   code: "P003",
+//   stock: 10,
+// });
+productManager.deleteProduct(3);
 // productManager.updateProduct(1, {tutor: "hola"} )
-
 
 const products = productManager.getProducts();
 console.log(products);
