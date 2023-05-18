@@ -1,4 +1,4 @@
-const fs = require("fs");
+import fs from "fs"
 
 class ProductManager {
   constructor(filePath) {
@@ -106,17 +106,17 @@ class ProductManager {
   }
 }
 
-const productManager = new ProductManager("productos.json");
+const productManager = new ProductManager("src/productos.json");
 
-// productManager.addProduct({
-//   title: "Remera",
-//   description: "Remera de algodón",
-//   price: 2999.99,
-//   thumbnail: "https://i.ibb.co/6bddLrh/20201206-191301.jpg",
-//   code: "P003",
-//   stock: 10,
-// });
-productManager.deleteProduct(3);
+productManager.addProduct({
+  title: "Bluza",
+  description: "Bluza",
+  price: 6999.99,
+  thumbnail: "https://i.ibb.co/6bddLrh/20201206-191301.jpg",
+  code: "P006",
+  stock: 10,
+});
+// productManager.deleteProduct(3);
 // productManager.updateProduct(1, {tutor: "hola"} )
 
 const products = productManager.getProducts();
